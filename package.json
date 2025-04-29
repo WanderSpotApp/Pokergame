@@ -4,7 +4,7 @@
   "description": "Multiplayer poker game",
   "scripts": {
     "install-all": "npm install && cd poker-frontend && npm install",
-    "build": "cd poker-frontend && npm run build",
+    "build": "cd poker-frontend && CI=false npm run build",
     "start": "node src/server-new.js",
     "dev": "concurrently \"cd poker-frontend && npm start\" \"nodemon src/server-new.js\""
   },
@@ -23,6 +23,6 @@
     "nodemon": "^3.0.1"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": "18.x"
   }
 }
