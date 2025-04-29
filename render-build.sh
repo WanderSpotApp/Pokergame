@@ -8,11 +8,9 @@ npm install
 echo "Installing frontend dependencies..."
 cd poker-frontend
 npm install
-cd ..
 
 # Build the frontend
 echo "Building frontend..."
-cd poker-frontend
 npm run build
 cd ..
 
