@@ -6,6 +6,7 @@ const gameStore = require('./services/gameStore');
 const authRoutes = require('./routes/authRoutes');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tiisalaeino:mirriparas@cluster0.gzkpsux.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
@@ -31,9 +32,18 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../poker-frontend/build')));
+
 // REST API routes
 app.use('/api/game', gameRoutes);
 app.use('/api/auth', authRoutes);
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../poker-frontend/build/index.html'));
+});
 
 // Place this at the top, before io.on('connection', ...)
 const playerSockets = {}; // playerId -> socket.id
