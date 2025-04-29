@@ -5,11 +5,8 @@ const Game = require('../models/Game');
 const Player = require('../models/Player');
 const AIPlayer = require('../models/AIPlayer');
 
-// Connect to MongoDB (local, default port)
-mongoose.connect('mongodb://127.0.0.1:27017/poker', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+// MongoDB connection is handled in server.js
+// No need to connect here
 
 const games = {};
 
