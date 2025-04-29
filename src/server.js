@@ -39,9 +39,8 @@ app.use(express.static(path.join(__dirname, '../poker-frontend/build')));
 app.use('/api/game', gameRoutes);
 app.use('/api/auth', authRoutes);
 
-// The "catchall" handler: for any request that doesn't
-// match one above, send back React's index.html file.
-app.get('/*', (req, res) => {
+// For any other request, send the React app
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../poker-frontend/build/index.html'));
 });
 
