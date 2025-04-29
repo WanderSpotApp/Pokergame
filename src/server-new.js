@@ -7,24 +7,27 @@ const authRoutes = require('./routes/authRoutes');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
+const fs = require('fs');
 
+// Use environment variables with fallbacks
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tiisalaeino:mirriparas@cluster0.gzkpsux.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Connect to MongoDB
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch(err => {
-  console.error('MongoDB connection error:', err);
-});
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+  });
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: process.env.CORS_ORIGIN || '*',
   },
 });
 
@@ -32,8 +35,16 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, '../poker-frontend/build')));
+// Serve static files from the React app in production
+if (NODE_ENV === 'production') {
+  const buildPath = path.join(__dirname, '../poker-frontend/build');
+  if (fs.existsSync(buildPath)) {
+    console.log('Serving static files from:', buildPath);
+    app.use(express.static(buildPath));
+  } else {
+    console.warn('Build directory not found at:', buildPath);
+  }
+}
 
 // REST API routes
 app.use('/api/game', gameRoutes);
@@ -261,9 +272,20 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3001;
+// Handle all other routes by serving the React app in production
+if (NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    const indexPath = path.join(__dirname, '../poker-frontend/build/index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('React app not built');
+    }
+  });
+}
+
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
 });
 
 module.exports = server;
@@ -322,9 +344,4 @@ function emitPersonalizedGameState(game) {
       });
     }
   });
-}
-
-// Handle all other routes by serving the React app
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, '../poker-frontend/build/index.html'));
-}); 
+} 

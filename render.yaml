@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: pokergame
+    runtime: node
+    buildCommand: npm run install-all && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGIN
+        value: https://pokergame.onrender.com
+      - key: MONGODB_URI
+        sync: false 

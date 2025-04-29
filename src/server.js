@@ -11,14 +11,13 @@ const path = require('path');
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tiisalaeino:mirriparas@cluster0.gzkpsux.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
 // Connect to MongoDB
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch(err => {
-  console.error('MongoDB connection error:', err);
-});
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+  });
 
 const app = express();
 const server = http.createServer(app);

@@ -1,22 +1,28 @@
 {
-  "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.15.10",
-    "@mui/material": "^5.15.10",
-    "bcrypt": "^5.1.1",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.14.0",
-    "pokersolver": "^2.1.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.1",
-    "socket.io": "^4.8.1",
-    "uuid": "^11.1.0"
-  },
+  "name": "poker-game",
+  "version": "1.0.0",
+  "description": "Multiplayer poker game",
   "scripts": {
-    "start": "node src/server-new.js"
+    "install-all": "npm install && cd poker-frontend && npm install",
+    "build": "cd poker-frontend && npm run build",
+    "start": "node src/server-new.js",
+    "dev": "concurrently \"cd poker-frontend && npm start\" \"nodemon src/server-new.js\""
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "jsonwebtoken": "^9.0.1",
+    "bcrypt": "^5.1.1",
+    "pokersolver": "^2.1.4",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.1",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
