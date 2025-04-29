@@ -17,6 +17,6 @@
     "uuid": "^11.1.0"
   },
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server-new.js"
   }
 }
