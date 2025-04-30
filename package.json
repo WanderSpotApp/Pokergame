@@ -4,7 +4,7 @@
   "description": "Multiplayer poker game",
   "scripts": {
     "install-all": "npm install && cd poker-frontend && npm install",
-    "build": "cd poker-frontend && CI=false npm run build",
+    "build": "cd poker-frontend && npm install && CI=false npm run build",
     "start": "node src/server-new.js",
     "dev": "concurrently \"cd poker-frontend && npm start\" \"nodemon src/server-new.js\""
   },

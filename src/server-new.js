@@ -38,12 +38,31 @@ app.use(express.json());
 // Serve static files from the React app in production
 if (NODE_ENV === 'production') {
   const buildPath = path.join(__dirname, '../poker-frontend/build');
+  const alternativeBuildPath = path.join(__dirname, 'poker-frontend/build');
+  
   if (fs.existsSync(buildPath)) {
     console.log('Serving static files from:', buildPath);
     app.use(express.static(buildPath));
+  } else if (fs.existsSync(alternativeBuildPath)) {
+    console.log('Serving static files from:', alternativeBuildPath);
+    app.use(express.static(alternativeBuildPath));
   } else {
-    console.warn('Build directory not found at:', buildPath);
+    console.warn('Build directory not found. Checked paths:', buildPath, alternativeBuildPath);
   }
+
+  // Handle client-side routing
+  app.get('*', (req, res) => {
+    const indexPath = path.join(buildPath, 'index.html');
+    const alternativeIndexPath = path.join(alternativeBuildPath, 'index.html');
+    
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else if (fs.existsSync(alternativeIndexPath)) {
+      res.sendFile(alternativeIndexPath);
+    } else {
+      res.status(404).send('Not found');
+    }
+  });
 }
 
 // REST API routes
@@ -271,18 +290,6 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
   });
 });
-
-// Handle all other routes by serving the React app in production
-if (NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    const indexPath = path.join(__dirname, '../poker-frontend/build/index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).send('React app not built');
-    }
-  });
-}
 
 server.listen(PORT, () => {
   console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
