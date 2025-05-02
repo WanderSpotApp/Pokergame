@@ -10,8 +10,13 @@ const path = require('path');
 const fs = require('fs');
 
 // Use environment variables with fallbacks
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://tiisalaeino:mirriparas@cluster0.gzkpsux.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-const PORT = process.env.PORT || 3001;
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI environment variable is required');
+  process.exit(1);
+}
+
+const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Connect to MongoDB
@@ -21,6 +26,7 @@ mongoose.connect(MONGODB_URI)
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
+    process.exit(1);
   });
 
 const app = express();
@@ -37,32 +43,17 @@ app.use(express.json());
 
 // Serve static files from the React app in production
 if (NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../poker-frontend/build');
-  const alternativeBuildPath = path.join(__dirname, 'poker-frontend/build');
-  
+  const buildPath = path.join(__dirname, 'poker-frontend/build');
   if (fs.existsSync(buildPath)) {
     console.log('Serving static files from:', buildPath);
     app.use(express.static(buildPath));
-  } else if (fs.existsSync(alternativeBuildPath)) {
-    console.log('Serving static files from:', alternativeBuildPath);
-    app.use(express.static(alternativeBuildPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(buildPath, 'index.html'));
+    });
   } else {
-    console.warn('Build directory not found. Checked paths:', buildPath, alternativeBuildPath);
+    console.error('Build directory not found at:', buildPath);
+    process.exit(1);
   }
-
-  // Handle client-side routing
-  app.get('*', (req, res) => {
-    const indexPath = path.join(buildPath, 'index.html');
-    const alternativeIndexPath = path.join(alternativeBuildPath, 'index.html');
-    
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else if (fs.existsSync(alternativeIndexPath)) {
-      res.sendFile(alternativeIndexPath);
-    } else {
-      res.status(404).send('Not found');
-    }
-  });
 }
 
 // REST API routes
