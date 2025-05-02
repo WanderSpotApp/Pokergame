@@ -3,11 +3,19 @@ FROM node:18-alpine as build
 
 WORKDIR /app
 
-# Copy all files first
-COPY . .
+# Install Git
+RUN apk add --no-cache git
 
-# Install dependencies
+# Copy root package files
+COPY package*.json ./
+
+# Install root dependencies
 RUN npm install
+
+# Clone frontend repository
+RUN git clone https://github.com/WanderSpotApp/poker-frontend.git
+
+# Install frontend dependencies
 RUN cd poker-frontend && npm install
 
 # Build frontend
