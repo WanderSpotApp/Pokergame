@@ -12,14 +12,16 @@ COPY . .
 # Install root dependencies
 RUN npm install
 
+# Remove existing poker-frontend directory if it exists
+RUN rm -rf poker-frontend
+
 # Clone frontend repository
 RUN git clone https://github.com/WanderSpotApp/poker-frontend.git
 
 # Install frontend dependencies
 RUN cd poker-frontend && npm install
 
-# Build frontend with environment variables
-ENV REACT_APP_API_URL=https://pokergame-2.onrender.com
+# Build frontend
 RUN cd poker-frontend && npm run build
 
 # Production stage
