@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "Multiplayer poker game",
   "scripts": {
-    "install-all": "npm install && cd poker-frontend && npm install",
-    "build": "cd poker-frontend && npm run build",
+    "preinstall": "npm install",
+    "install-all": "cd poker-frontend && npm install",
+    "build-frontend": "cd poker-frontend && npm run build",
+    "build": "npm run install-all && npm run build-frontend",
     "start": "node src/server-new.js",
     "dev": "concurrently \"cd poker-frontend && npm start\" \"nodemon src/server-new.js\""
   },
