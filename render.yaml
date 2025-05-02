@@ -2,7 +2,7 @@ services:
   - type: web
     name: pokergame
     runtime: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && cd poker-frontend && npm install && cd .. && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -10,7 +10,7 @@ services:
       - key: PORT
         value: 10000
       - key: CORS_ORIGIN
-        value: https://pokergame.onrender.com
+        value: https://pokergame-2.onrender.com
       - key: MONGODB_URI
         sync: false
       - key: CI
