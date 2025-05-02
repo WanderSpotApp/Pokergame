@@ -32,19 +32,42 @@ mongoose.connect(MONGODB_URI)
 
 const app = express();
 const server = http.createServer(app);
+
+// Configure CORS before any routes
+app.use(cors({
+  origin: CORS_ORIGIN,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Parse JSON bodies
+app.use(express.json());
+
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
+// REST API routes
+app.use('/api/game', gameRoutes);
+app.use('/api/auth', authRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Configure Socket.IO after routes
 const io = new Server(server, {
   cors: {
     origin: CORS_ORIGIN,
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST']
   },
 });
-
-// Middleware
-app.use(cors({
-  origin: CORS_ORIGIN,
-  credentials: true
-}));
-app.use(express.json());
 
 // Serve static files from React app
 if (process.env.NODE_ENV === 'production') {
@@ -59,10 +82,6 @@ if (process.env.NODE_ENV === 'production') {
         process.exit(1);
     }
 }
-
-// REST API routes
-app.use('/api/game', gameRoutes);
-app.use('/api/auth', authRoutes);
 
 // Place this at the top, before io.on('connection', ...)
 const playerSockets = {}; // playerId -> socket.id
