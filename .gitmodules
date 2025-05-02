@@ -1,3 +1,0 @@
-[submodule "poker-frontend"]
-    path = poker-frontend
-    url = git://github.com/WanderSpotApp/poker-frontend.git 
