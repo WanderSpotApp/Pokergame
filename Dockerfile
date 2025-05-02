@@ -6,8 +6,8 @@ WORKDIR /app
 # Install Git
 RUN apk add --no-cache git
 
-# Copy root package files
-COPY package*.json ./
+# Copy all files from main repository
+COPY . .
 
 # Install root dependencies
 RUN npm install
