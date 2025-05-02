@@ -18,7 +18,8 @@ RUN git clone https://github.com/WanderSpotApp/poker-frontend.git
 # Install frontend dependencies
 RUN cd poker-frontend && npm install
 
-# Build frontend
+# Build frontend with environment variables
+ENV REACT_APP_API_URL=https://pokergame-2.onrender.com
 RUN cd poker-frontend && npm run build
 
 # Production stage
@@ -35,6 +36,7 @@ COPY --from=build /app/poker-frontend/build ./src/poker-frontend/build
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=10000
+ENV REACT_APP_API_URL=https://pokergame-2.onrender.com
 
 # Expose port
 EXPOSE 10000
