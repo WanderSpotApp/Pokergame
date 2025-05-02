@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Multiplayer poker game",
   "scripts": {
-    "preinstall": "npm install",
     "install-all": "cd poker-frontend && npm install",
     "build-frontend": "cd poker-frontend && npm run build",
     "build": "npm run install-all && npm run build-frontend",
