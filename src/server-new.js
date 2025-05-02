@@ -18,7 +18,7 @@ if (!MONGODB_URI) {
 
 const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'https://pokergame-2.onrender.com';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'https://pokergame-3.onrender.com';
 
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
