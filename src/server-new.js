@@ -226,6 +226,28 @@ io.on('connection', (socket) => {
         const notActed = active.filter(p => !game.engine.actedPlayers.has(p.id));
         game.engine.currentPlayer = notActed.length > 0 ? notActed[0].id : null;
       }
+
+      // --- NEW: End hand if all but one player have folded ---
+      const activePlayers = game.engine.getActivePlayers();
+      if (activePlayers.length === 1 && !game.engine.isShowdown()) {
+        // Only one player left, award pot and end hand
+        activePlayers[0].chips += game.engine.pot;
+        game.engine.pot = 0;
+        game.engine.bettingRound = 'showdown';
+        game.engine.awardPotToWinner();
+        await gameStore.saveGame({
+          id: game.id,
+          players: game.engine.players,
+          board: game.engine.board,
+          pot: game.engine.pot,
+          currentBet: game.engine.currentBet,
+          bettingRound: game.engine.bettingRound,
+          status: game.status,
+        });
+        emitPersonalizedGameState(game);
+        return;
+      }
+
       await gameStore.saveGame({
         id: game.id,
         players: game.engine.players,
