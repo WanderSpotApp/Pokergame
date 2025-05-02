@@ -3,17 +3,12 @@ FROM node:18-alpine as build
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY poker-frontend/package*.json ./poker-frontend/
+# Copy all files first
+COPY . .
 
 # Install dependencies
 RUN npm install
 RUN cd poker-frontend && npm install
-
-# Copy source code
-COPY . .
-COPY poker-frontend ./poker-frontend
 
 # Build frontend
 RUN cd poker-frontend && npm run build
