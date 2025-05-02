@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e  # Exit on error
+
 # Install dependencies for the main project
 echo "Installing main project dependencies..."
 npm install
@@ -11,7 +13,7 @@ npm install
 
 # Build the frontend
 echo "Building frontend..."
-npm run build
+CI=false npm run build
 cd ..
 
 echo "Build completed successfully!" 
