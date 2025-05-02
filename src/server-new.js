@@ -18,6 +18,7 @@ if (!MONGODB_URI) {
 
 const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'https://pokergame-2.onrender.com';
 
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
@@ -33,12 +34,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: CORS_ORIGIN,
+    credentials: true
   },
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: CORS_ORIGIN,
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve static files from React app
