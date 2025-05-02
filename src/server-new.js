@@ -41,19 +41,18 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the React app in production
-if (NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, 'poker-frontend/build');
-  if (fs.existsSync(buildPath)) {
-    console.log('Serving static files from:', buildPath);
-    app.use(express.static(buildPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(buildPath, 'index.html'));
-    });
-  } else {
-    console.error('Build directory not found at:', buildPath);
-    process.exit(1);
-  }
+// Serve static files from React app
+if (process.env.NODE_ENV === 'production') {
+    const buildPath = path.join(__dirname, 'poker-frontend/build');
+    if (fs.existsSync(buildPath)) {
+        app.use(express.static(buildPath));
+        app.get('*', (req, res) => {
+            res.sendFile(path.join(buildPath, 'index.html'));
+        });
+    } else {
+        console.error('Build directory not found at:', buildPath);
+        process.exit(1);
+    }
 }
 
 // REST API routes

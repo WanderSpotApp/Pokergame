@@ -30,7 +30,7 @@ WORKDIR /app
 COPY --from=build /app/package*.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/src ./src
-COPY --from=build /app/poker-frontend/build ./poker-frontend/build
+COPY --from=build /app/poker-frontend/build ./src/poker-frontend/build
 
 # Set environment variables
 ENV NODE_ENV=production
