@@ -176,9 +176,11 @@ class GameEngine {
     const player = this.players.find(p => p.id === playerId);
     if (!player || player.folded) throw new Error('Invalid player');
     const toCall = this.currentBet - player.currentBet;
+    if (amount < this.minRaise) throw new Error(`Minimum raise is ${this.minRaise}`);
     player.bet(toCall + amount);
     this.pot += toCall + amount;
-    this.currentBet += amount;
+    this.currentBet = player.currentBet;
+    this.minRaise = amount;
     this.markActed(playerId);
   }
 
