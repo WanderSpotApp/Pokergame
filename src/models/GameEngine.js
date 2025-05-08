@@ -11,10 +11,16 @@ class GameEngine {
     this.pot = 0;
     this.currentBet = 0;
     this.bettingRound = 'preflop';
+    this.dealerPosition = 0;
+    this.smallBlind = 5;
+    this.bigBlind = 10;
+    this.minRaise = this.bigBlind;
+    this.sidePots = [];
   }
 
   addPlayer(player) {
     this.players.push(player);
+    player.position = this.players.length - 1;
   }
 
   startHand() {
@@ -24,11 +30,118 @@ class GameEngine {
     this.pot = 0;
     this.currentBet = 0;
     this.bettingRound = 'preflop';
+    this.sidePots = [];
+    
+    // Reset all players
     this.players.forEach(p => p.resetHand());
+    
+    // Deal hole cards
     this.players.forEach(p => {
       p.hand = this.deck.deal(2);
     });
+
+    // Post blinds
+    this.postBlinds();
+    
     this.actedPlayers = new Set();
+    this.currentPlayer = this.getNextActivePlayer(null);
+  }
+
+  postBlinds() {
+    const activePlayers = this.getActivePlayers();
+    if (activePlayers.length < 2) return;
+
+    // Get positions for blinds
+    const sbPos = (this.dealerPosition + 1) % this.players.length;
+    const bbPos = (this.dealerPosition + 2) % this.players.length;
+    
+    // Post small blind
+    const sbPlayer = this.players[sbPos];
+    if (sbPlayer && !sbPlayer.folded) {
+      const sbAmount = Math.min(this.smallBlind, sbPlayer.chips);
+      sbPlayer.bet(sbAmount);
+      this.pot += sbAmount;
+      this.currentBet = sbAmount;
+    }
+
+    // Post big blind
+    const bbPlayer = this.players[bbPos];
+    if (bbPlayer && !bbPlayer.folded) {
+      const bbAmount = Math.min(this.bigBlind, bbPlayer.chips);
+      bbPlayer.bet(bbAmount);
+      this.pot += bbAmount;
+      this.currentBet = bbAmount;
+    }
+  }
+
+  rotateDealer() {
+    this.dealerPosition = (this.dealerPosition + 1) % this.players.length;
+  }
+
+  getNextActivePlayer(currentPlayerId) {
+    const activePlayers = this.getActivePlayers();
+    if (activePlayers.length === 0) return null;
+    
+    const currentIndex = currentPlayerId 
+      ? activePlayers.findIndex(p => p.id === currentPlayerId)
+      : -1;
+    
+    return activePlayers[(currentIndex + 1) % activePlayers.length].id;
+  }
+
+  placeBet(playerId, amount) {
+    const player = this.players.find(p => p.id === playerId);
+    if (!player || player.folded) throw new Error('Invalid player');
+    
+    // Validate minimum raise
+    if (amount > this.currentBet && amount < this.currentBet + this.minRaise) {
+      throw new Error(`Minimum raise is ${this.minRaise}`);
+    }
+
+    // Handle all-in
+    if (amount >= player.chips) {
+      this.handleAllIn(player, amount);
+      return;
+    }
+
+    player.bet(amount);
+    this.pot += amount;
+    if (amount > this.currentBet) {
+      this.currentBet = amount;
+      this.minRaise = amount - this.currentBet;
+    }
+    this.markActed(playerId);
+  }
+
+  handleAllIn(player, attemptedBet) {
+    const allInAmount = player.chips;
+    player.bet(allInAmount);
+    this.pot += allInAmount;
+    
+    // Create side pot if needed
+    if (attemptedBet > allInAmount) {
+      this.createSidePot(player, attemptedBet - allInAmount);
+    }
+    
+    this.markActed(player.id);
+  }
+
+  createSidePot(allInPlayer, remainingBet) {
+    const sidePot = {
+      amount: 0,
+      eligiblePlayers: this.getActivePlayers().filter(p => p.id !== allInPlayer.id)
+    };
+    
+    // Calculate side pot amount
+    this.players.forEach(player => {
+      if (player.id !== allInPlayer.id && !player.folded) {
+        const contribution = Math.min(remainingBet, player.chips);
+        player.bet(contribution);
+        sidePot.amount += contribution;
+      }
+    });
+    
+    this.sidePots.push(sidePot);
   }
 
   dealFlop() {
@@ -48,16 +161,6 @@ class GameEngine {
 
   getActivePlayers() {
     return this.players.filter(p => !p.folded);
-  }
-
-  placeBet(playerId, amount) {
-    const player = this.players.find(p => p.id === playerId);
-    if (!player || player.folded) throw new Error('Invalid player');
-    if (amount < this.currentBet) throw new Error('Bet must be at least current bet');
-    player.bet(amount);
-    this.pot += amount;
-    if (amount > this.currentBet) this.currentBet = amount;
-    this.markActed(playerId);
   }
 
   call(playerId) {
@@ -157,21 +260,12 @@ class GameEngine {
     this.pot = 0;
     this.currentBet = 0;
     this.bettingRound = 'preflop';
+    this.sidePots = [];
     this.players.forEach(p => p.resetHand());
     this.deck.reset();
     this.deck.shuffle();
-    this.players.forEach(p => {
-      p.hand = this.deck.deal(2);
-    });
-    this.actedPlayers = new Set();
-  }
-
-  getNextActivePlayer(currentId) {
-    const active = this.getActivePlayers();
-    if (active.length === 0) return null;
-    if (!currentId) return active[0].id;
-    const idx = active.findIndex(p => p.id === currentId);
-    return active[(idx + 1) % active.length].id;
+    this.rotateDealer();
+    this.startHand();
   }
 
   // More methods for betting, showdown, etc. will be added for full game logic

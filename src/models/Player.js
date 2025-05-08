@@ -6,12 +6,18 @@ class Player {
     this.chips = chips;
     this.currentBet = 0;
     this.folded = false;
+    this.position = null;
+    this.isDealer = false;
+    this.isSmallBlind = false;
+    this.isBigBlind = false;
   }
 
   resetHand() {
     this.hand = [];
     this.currentBet = 0;
     this.folded = false;
+    this.isSmallBlind = false;
+    this.isBigBlind = false;
   }
 
   bet(amount) {
@@ -23,6 +29,19 @@ class Player {
 
   fold() {
     this.folded = true;
+  }
+
+  setPosition(position) {
+    this.position = position;
+  }
+
+  setDealer(isDealer) {
+    this.isDealer = isDealer;
+  }
+
+  setBlinds(isSmallBlind, isBigBlind) {
+    this.isSmallBlind = isSmallBlind;
+    this.isBigBlind = isBigBlind;
   }
 }
 

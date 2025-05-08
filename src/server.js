@@ -158,6 +158,13 @@ io.on('connection', (socket) => {
         socket.emit('error', { error: 'It is not your turn.' });
         return;
       }
+
+      // Validate action based on betting round
+      if (!isValidAction(game.engine, action, amount)) {
+        socket.emit('error', { error: 'Invalid action for current betting round' });
+        return;
+      }
+
       switch (action) {
         case 'bet':
           game.engine.placeBet(playerId, amount);
@@ -171,10 +178,39 @@ io.on('connection', (socket) => {
         case 'fold':
           game.engine.fold(playerId);
           break;
+        case 'check':
+          if (game.engine.currentBet > 0) {
+            socket.emit('error', { error: 'Cannot check when there is a bet to call' });
+            return;
+          }
+          game.engine.markActed(playerId);
+          break;
         default:
           socket.emit('error', { error: 'Invalid action' });
           return;
       }
+
+      // Check if hand should end
+      const activePlayers = game.engine.getActivePlayers();
+      if (activePlayers.length === 1 && !game.engine.isShowdown()) {
+        // Only one player left, award pot and end hand
+        const winner = activePlayers[0];
+        winner.chips += game.engine.pot;
+        game.engine.pot = 0;
+        game.engine.bettingRound = 'showdown';
+        await gameStore.saveGame({
+          id: game.id,
+          players: game.engine.players,
+          board: game.engine.board,
+          pot: game.engine.pot,
+          currentBet: game.engine.currentBet,
+          bettingRound: game.engine.bettingRound,
+          status: game.status,
+        });
+        emitPersonalizedGameState(game);
+        return;
+      }
+
       // Advance turn or round
       if (game.engine.allPlayersActed()) {
         game.engine.advanceRound();
@@ -186,6 +222,7 @@ io.on('connection', (socket) => {
         const notActed = active.filter(p => !game.engine.actedPlayers.has(p.id));
         game.engine.currentPlayer = notActed.length > 0 ? notActed[0].id : null;
       }
+
       await gameStore.saveGame({
         id: game.id,
         players: game.engine.players,
@@ -195,6 +232,7 @@ io.on('connection', (socket) => {
         bettingRound: game.engine.bettingRound,
         status: game.status,
       });
+
       if (game.engine.isShowdown()) {
         game.engine.awardPotToWinner();
         await gameStore.saveGame({
@@ -221,11 +259,11 @@ io.on('connection', (socket) => {
           })),
         });
       }
+
       emitPersonalizedGameState(game);
-      console.log('[SOCKET] playerAction: Players in gameState:', game.engine.players.map(p => ({ id: p.id, name: p.name, chips: p.chips, position: p.position, folded: p.folded })));
     } catch (err) {
+      console.error('Error processing player action:', err);
       socket.emit('error', { error: err.message });
-      console.error('[SOCKET] playerAction error:', err);
     }
   });
 
@@ -301,6 +339,27 @@ function handToClient(hand) {
   }) : [];
 }
 
+// Helper function to validate actions based on betting round
+function isValidAction(engine, action, amount) {
+  const currentBet = engine.currentBet;
+  const minRaise = engine.minRaise;
+
+  switch (action) {
+    case 'check':
+      return currentBet === 0;
+    case 'call':
+      return true;
+    case 'bet':
+      return amount >= currentBet + minRaise;
+    case 'raise':
+      return amount >= minRaise;
+    case 'fold':
+      return true;
+    default:
+      return false;
+  }
+}
+
 // Helper to emit personalized game state to all players
 function emitPersonalizedGameState(game) {
   game.engine.players.forEach(p => {
@@ -318,10 +377,15 @@ function emitPersonalizedGameState(game) {
           folded: other.folded,
           currentBet: other.currentBet,
           position: other.position,
+          isDealer: other.position === game.engine.dealerPosition,
+          isSmallBlind: other.isSmallBlind,
+          isBigBlind: other.isBigBlind,
           hand: other.id === p.id ? handToClient(other.hand) : [],
         })),
         board: game.engine.board.map(cardToString),
         currentPlayer: game.engine.currentPlayer,
+        minRaise: game.engine.minRaise,
+        sidePots: game.engine.sidePots,
         winner: game.engine.isShowdown() ? (Array.isArray(game.engine.getWinner()) ? game.engine.getWinner()[0] : game.engine.getWinner()) : null,
       });
     }
